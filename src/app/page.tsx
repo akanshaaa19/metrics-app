@@ -1,103 +1,274 @@
-import Image from "next/image";
+"use client";
+
+import axios from "axios";
+import { useState } from "react";
+
+interface MetricsData {
+  success: boolean;
+  status: number;
+  totalRows: number;
+  tagCounts: {
+    [key: string]: {
+      total: number;
+      P0: number;
+      P1: number;
+      P2: number;
+      P3: number;
+      P4: number;
+    };
+  };
+  avgClosureTime: number;
+  avgResponseTime: number;
+}
+
+const getTagColor = (tag: string) => {
+  const colors: { [key: string]: string } = {
+    Resources: "bg-purple-100 text-purple-800",
+    Resolved: "bg-green-100 text-green-800",
+    Bug: "bg-red-100 text-red-800",
+    "Knowledge Gap": "bg-blue-100 text-blue-800",
+    "In Process": "bg-yellow-100 text-yellow-800",
+    "New Feature": "bg-lime-100 text-teal-800",
+    "Documentation update": "bg-pink-100 text-pink-800",
+  };
+  return colors[tag] || "bg-gray-100 text-gray-800";
+};
+
+const getPriorityColor = (priority: string) => {
+  const colors: { [key: string]: string } = {
+    P0: "bg-red-500 text-white",
+    P1: "bg-orange-500 text-white",
+    P2: "bg-yellow-500 text-white",
+    P3: "bg-green-500 text-white",
+    P4: "bg-blue-500 text-white",
+  };
+  return colors[priority] || "bg-gray-500 text-white";
+};
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [metricsData, setMetricsData] = useState<MetricsData | null>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const getMetrics = async () => {
+    setLoading(true);
+    console.log("Getting metrics for:", { startDate, endDate });
+    const getUrl = `https://script.google.com/macros/s/AKfycbzHTQMAVG7Ku097Nyikz5zTMkg35-7X8wNv2fTan-V6s28ME5JbztfB1Ae0xpGB8UhI/exec?startDate=${startDate}&endDate=${endDate}`;
+
+    await axios.get(getUrl, { maxRedirects: 5 }).then((response) => {
+      setLoading(false);
+      setMetricsData(response.data);
+    });
+  };
+
+  const resetForm = () => {
+    setStartDate("");
+    setEndDate("");
+    setMetricsData(null);
+  };
+
+  return (
+    <div className="min-h-screen p-8 ">
+      <div className=" w-full space-y-6 flex items-center flex-col">
+        <h1 className="text-3xl font-bold text-center">Support Metrics</h1>
+
+        <div className="sm:w-1/2 w-full flex space-y-4 flex-col">
+          <div className="space-y-4">
+            <div>
+              <label
+                htmlFor="startDate"
+                className="block text-sm font-medium mb-2 text-white"
+              >
+                Start Date
+              </label>
+              <input
+                type="date"
+                id="startDate"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-transparent text-white"
+                style={{
+                  colorScheme: 'dark'
+                }}
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="endDate"
+                className="block text-sm font-medium mb-2 text-white"
+              >
+                End Date
+              </label>
+              <input
+                type="date"
+                id="endDate"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-transparent text-white"
+                style={{
+                  colorScheme: 'dark'
+                }}
+              />
+            </div>
+
+            <div className="w-full space-x-4 flex ">
+              <button
+                onClick={resetForm}
+                className="flex-1 border-1 border-gray-300 text-white py-2 px-4 rounded-md hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 font-medium w-1/2"
+                disabled={loading}
+              >
+                Reset
+              </button>
+              <button
+                onClick={getMetrics}
+                className="w-1/2 bg-indigo-400 text-white py-2 px-4 rounded-md hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                disabled={loading}
+              >
+                {loading ? "Loading..." : "Get Metrics"}
+              </button>
+            </div>
+          </div>
+
+          {metricsData && (
+            <div className="space-y-6">
+              {/* Summary Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white p-4 rounded-lg shadow border">
+                  <h3 className="text-lg font-semibold text-gray-700">
+                    Total Rows
+                  </h3>
+                  <p className="text-2xl font-bold text-blue-600">
+                    {metricsData.totalRows}
+                  </p>
+                </div>
+                <div className="bg-white p-4 rounded-lg shadow border">
+                  <h3 className="text-lg font-semibold text-gray-700">
+                    Avg Closure Time
+                  </h3>
+                  <p className="text-2xl font-bold text-green-600">
+                    {metricsData.avgClosureTime.toFixed(2)} days
+                  </p>
+                </div>
+                <div className="bg-white p-4 rounded-lg shadow border">
+                  <h3 className="text-lg font-semibold text-gray-700">
+                    Avg Response Time
+                  </h3>
+                  <p className="text-2xl font-bold text-orange-600">
+                    {(metricsData.avgResponseTime * 24).toFixed(2)} hours
+                  </p>
+                </div>
+              </div>
+
+              {/* Tag Counts Table */}
+              <div className="bg-white rounded-lg shadow overflow-hidden">
+                <div className="px-4 py-3 border-b border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Tag Distribution by Priority
+                  </h3>
+                </div>
+                <div className="overflow-x-auto">
+                  <div className="max-h-80 overflow-y-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50 sticky top-0 z-10">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Tag
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Total
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            P0
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            P1
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            P2
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            P3
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            P4
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200 text-xs sm:text-sm">
+                        {Object.entries(metricsData.tagCounts).map(
+                          ([tag, counts]) => (
+                            <tr key={tag} className="hover:bg-gray-50">
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span
+                                  className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getTagColor(
+                                    tag
+                                  )}`}
+                                >
+                                  {tag.replace("_", " ").toUpperCase()}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                                {counts.total}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span
+                                  className={`inline-flex px-2 py-1 text-xs font-semibold rounded ${getPriorityColor(
+                                    "P0"
+                                  )}`}
+                                >
+                                  {counts.P0}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span
+                                  className={`inline-flex px-2 py-1 text-xs font-semibold rounded ${getPriorityColor(
+                                    "P1"
+                                  )}`}
+                                >
+                                  {counts.P1}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span
+                                  className={`inline-flex px-2 py-1 text-xs font-semibold rounded ${getPriorityColor(
+                                    "P2"
+                                  )}`}
+                                >
+                                  {counts.P2}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span
+                                  className={`inline-flex px-2 py-1 text-xs font-semibold rounded ${getPriorityColor(
+                                    "P3"
+                                  )}`}
+                                >
+                                  {counts.P3}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span
+                                  className={`inline-flex px-2 py-1 text-xs font-semibold rounded ${getPriorityColor(
+                                    "P4"
+                                  )}`}
+                                >
+                                  {counts.P4}
+                                </span>
+                              </td>
+                            </tr>
+                          )
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
     </div>
   );
 }
