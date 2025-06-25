@@ -17,6 +17,12 @@ interface MetricsData {
       P4: number;
     };
   };
+  crossTagAnalysis?: {
+    [key: string]: {
+      [key: string]: number;
+      Total: number;
+    };
+  };
   avgClosureTime: number;
   avgResponseTime: number;
 }
@@ -54,7 +60,7 @@ export default function Home() {
   const getMetrics = async () => {
     setLoading(true);
     console.log("Getting metrics for:", { startDate, endDate });
-    const getUrl = `https://script.google.com/macros/s/AKfycbzHTQMAVG7Ku097Nyikz5zTMkg35-7X8wNv2fTan-V6s28ME5JbztfB1Ae0xpGB8UhI/exec?startDate=${startDate}&endDate=${endDate}`;
+    const getUrl = `https://script.google.com/macros/s/AKfycbzFlIXWABXbcYzfC_b3cqtdbIs5zMSgnrisATH7jy6M5p4ldhrbsS-vLqflvBokqf16/exec?startDate=${startDate}&endDate=${endDate}`;
 
     await axios.get(getUrl, { maxRedirects: 5 }).then((response) => {
       setLoading(false);
@@ -89,7 +95,7 @@ export default function Home() {
                 onChange={(e) => setStartDate(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-transparent text-white"
                 style={{
-                  colorScheme: 'dark'
+                  colorScheme: "dark",
                 }}
               />
             </div>
@@ -108,7 +114,7 @@ export default function Home() {
                 onChange={(e) => setEndDate(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-transparent text-white"
                 style={{
-                  colorScheme: 'dark'
+                  colorScheme: "dark",
                 }}
               />
             </div>
@@ -137,7 +143,7 @@ export default function Home() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-white p-4 rounded-lg shadow border">
                   <h3 className="text-lg font-semibold text-gray-700">
-                    Total Rows
+                    Total Tickets
                   </h3>
                   <p className="text-2xl font-bold text-blue-600">
                     {metricsData.totalRows}
@@ -148,7 +154,7 @@ export default function Home() {
                     Avg Closure Time
                   </h3>
                   <p className="text-2xl font-bold text-green-600">
-                    {metricsData.avgClosureTime.toFixed(2)} days
+                    {metricsData.avgClosureTime.toFixed(2)} hours
                   </p>
                 </div>
                 <div className="bg-white p-4 rounded-lg shadow border">
@@ -156,7 +162,7 @@ export default function Home() {
                     Avg Response Time
                   </h3>
                   <p className="text-2xl font-bold text-orange-600">
-                    {(metricsData.avgResponseTime * 24).toFixed(2)} hours
+                    {metricsData.avgResponseTime.toFixed(2)} hours
                   </p>
                 </div>
               </div>
@@ -165,7 +171,7 @@ export default function Home() {
               <div className="bg-white rounded-lg shadow overflow-hidden">
                 <div className="px-4 py-3 border-b border-gray-200">
                   <h3 className="text-lg font-semibold text-gray-900">
-                    Tag Distribution by Priority
+                    Ticket Status by Priority
                   </h3>
                 </div>
                 <div className="overflow-x-auto">
@@ -206,7 +212,7 @@ export default function Home() {
                                     tag
                                   )}`}
                                 >
-                                  {tag.replace("_", " ").toUpperCase()}
+                                  {tag}
                                 </span>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
@@ -265,6 +271,71 @@ export default function Home() {
                   </div>
                 </div>
               </div>
+
+              {/* Cross Tag Analysis Table */}
+              {metricsData.crossTagAnalysis && (
+                <div className="bg-white rounded-lg shadow overflow-hidden">
+                  <div className="px-4 py-3 border-b border-gray-200">
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Ticket Status by Category
+                    </h3>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <div className="max-h-80 overflow-y-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50 sticky top-0 z-10">
+                          <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Primary Tag
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              In Process
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Resolved
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Pending From Org
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Total
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200 text-xs sm:text-sm">
+                          {Object.entries(metricsData.crossTagAnalysis).map(
+                            ([tag, analysis]) => (
+                              <tr key={tag} className="hover:bg-gray-50">
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <span
+                                    className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getTagColor(
+                                      tag
+                                    )}`}
+                                  >
+                                    {tag}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                  {analysis["In Process"] || 0}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                  {analysis["Resolved"] || 0}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                  {analysis["Pending from Org"] || 0}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                                  {analysis["Total"] || 0}
+                                </td>
+                              </tr>
+                            )
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
