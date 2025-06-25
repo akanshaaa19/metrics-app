@@ -23,6 +23,14 @@ interface MetricsData {
       Total: number;
     };
   };
+  priorityAverages?: {
+    [key: string]: {
+      avgClosureTime: number | string;
+      avgResponseTime: number | string;
+      closureCount: number;
+      responseCount: number;
+    };
+  };
   avgClosureTime: number;
   avgResponseTime: number;
 }
@@ -60,7 +68,7 @@ export default function Home() {
   const getMetrics = async () => {
     setLoading(true);
     console.log("Getting metrics for:", { startDate, endDate });
-    const getUrl = `https://script.google.com/macros/s/AKfycbzFlIXWABXbcYzfC_b3cqtdbIs5zMSgnrisATH7jy6M5p4ldhrbsS-vLqflvBokqf16/exec?startDate=${startDate}&endDate=${endDate}`;
+    const getUrl = `https://script.google.com/macros/s/AKfycbxO2m4SmhCFp-XojD5_xaASknpgOlVbL166fWR5w5tzefKdUaK7yyi9xnpKsAe-GaQa/exec?startDate=${startDate}&endDate=${endDate}`;
 
     await axios.get(getUrl, { maxRedirects: 5 }).then((response) => {
       setLoading(false);
@@ -333,6 +341,73 @@ export default function Home() {
                         </tbody>
                       </table>
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Priority Averages Table */}
+              {metricsData.priorityAverages && (
+                <div className="bg-white rounded-lg shadow overflow-hidden">
+                  <div className="px-4 py-3 border-b border-gray-200">
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Average Response & Closure Times by Priority
+                    </h3>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Priority
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Avg Response Time (hrs)
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Avg Closure Time (hrs)
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Response Count
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Closure Count
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200 text-xs sm:text-sm">
+                        {Object.entries(metricsData.priorityAverages).map(
+                          ([priority, averages]) => (
+                            <tr key={priority} className="hover:bg-gray-50">
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span
+                                  className={`inline-flex px-2 py-1 text-xs font-semibold rounded ${getPriorityColor(
+                                    priority.replace(" ", "")
+                                  )}`}
+                                >
+                                  {priority}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {typeof averages.avgResponseTime === "string"
+                                  ? averages.avgResponseTime
+                                  : averages.avgResponseTime.toFixed(2)}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {typeof averages.avgClosureTime === "string"
+                                  ? averages.avgClosureTime
+                                  : averages.avgClosureTime.toFixed(2)}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {averages.responseCount}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {averages.closureCount}
+                              </td>
+                            </tr>
+                          )
+                        )}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               )}
