@@ -288,7 +288,7 @@ export default function Home() {
               <div className="bg-white rounded-lg shadow overflow-hidden">
                 <div className="px-4 py-3 border-b border-gray-200">
                   <h3 className="text-lg font-semibold text-gray-900">
-                    Ticket Status by Status
+                    Ticket Count by Status
                   </h3>
                 </div>
                 <div className="overflow-x-auto">
