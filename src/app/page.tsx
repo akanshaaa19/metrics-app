@@ -68,7 +68,7 @@ export default function Home() {
   const getMetrics = async () => {
     setLoading(true);
     console.log("Getting metrics for:", { startDate, endDate });
-    const getUrl = `https://script.google.com/macros/s/AKfycbxO2m4SmhCFp-XojD5_xaASknpgOlVbL166fWR5w5tzefKdUaK7yyi9xnpKsAe-GaQa/exec?startDate=${startDate}&endDate=${endDate}`;
+    const getUrl = `https://script.google.com/macros/s/AKfycbyZ8Nd6ZU32WmeNIXhFHPMt0zKt79qZx80DXPZzAoo02Nh0VvH5QYQzdJdc-6_9InJ1/exec?startDate=${startDate}&endDate=${endDate}`;
 
     await axios.get(getUrl, { maxRedirects: 5 }).then((response) => {
       setLoading(false);
@@ -81,6 +81,20 @@ export default function Home() {
     setEndDate("");
     setMetricsData(null);
   };
+
+  const typesOfTickets = [
+    { name: "Knowledge Gap" },
+    { name: "Bug" },
+    { name: "New Feature" },
+    { name: "Documentation update" },
+    { name: "Resources" },
+  ];
+
+  const status = [
+    { name: "In Process" },
+    { name: "Resolved" },
+    { name: "Pending from Org" },
+  ];
 
   return (
     <div className="min-h-screen p-8 ">
@@ -205,22 +219,21 @@ export default function Home() {
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             P3
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            P4
-                          </th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200 text-xs sm:text-sm">
-                        {Object.entries(metricsData.tagCounts).map(
-                          ([tag, counts]) => (
-                            <tr key={tag} className="hover:bg-gray-50">
+                        {typesOfTickets.map((ticket) => {
+                          const counts = metricsData.tagCounts[ticket.name];
+
+                          return (
+                            <tr key={ticket.name} className="hover:bg-gray-50">
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <span
                                   className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getTagColor(
-                                    tag
+                                    ticket.name
                                   )}`}
                                 >
-                                  {tag}
+                                  {ticket.name}
                                 </span>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
@@ -262,18 +275,105 @@ export default function Home() {
                                   {counts.P3}
                                 </span>
                               </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              {/* Tickets count by status */}
+              <div className="bg-white rounded-lg shadow overflow-hidden">
+                <div className="px-4 py-3 border-b border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Ticket Status by Status
+                  </h3>
+                </div>
+                <div className="overflow-x-auto">
+                  <div className="max-h-80 overflow-y-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50 sticky top-0 z-10">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Tag
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Total
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            P0
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            P1
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            P2
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            P3
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200 text-xs sm:text-sm">
+                        {status.map((ticket) => {
+                          const counts = metricsData.tagCounts[ticket.name];
+                          console.log(counts);
+                          // return "yes";
+                          return (
+                            <tr key={ticket.name} className="hover:bg-gray-50">
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span
+                                  className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getTagColor(
+                                    ticket.name
+                                  )}`}
+                                >
+                                  {ticket.name}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                                {counts.total}
+                              </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <span
                                   className={`inline-flex px-2 py-1 text-xs font-semibold rounded ${getPriorityColor(
-                                    "P4"
+                                    "P0"
                                   )}`}
                                 >
-                                  {counts.P4}
+                                  {counts.P0}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span
+                                  className={`inline-flex px-2 py-1 text-xs font-semibold rounded ${getPriorityColor(
+                                    "P1"
+                                  )}`}
+                                >
+                                  {counts.P1}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span
+                                  className={`inline-flex px-2 py-1 text-xs font-semibold rounded ${getPriorityColor(
+                                    "P2"
+                                  )}`}
+                                >
+                                  {counts.P2}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span
+                                  className={`inline-flex px-2 py-1 text-xs font-semibold rounded ${getPriorityColor(
+                                    "P3"
+                                  )}`}
+                                >
+                                  {counts.P3}
                                 </span>
                               </td>
                             </tr>
-                          )
-                        )}
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
